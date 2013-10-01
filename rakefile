@@ -1,0 +1,45 @@
+require "rake"
+Dir.chdir File.realpath File.dirname __FILE__
+
+makefile = 'ext/Makefile'
+
+desc ""
+file makefile do
+  Dir.chdir 'ext' do
+    sh "ruby extconf.rb"
+  end
+end
+
+desc "make"
+task make: makefile do
+  Dir.chdir 'ext' do
+    sh 'make'
+  end
+end
+
+desc "make and run test"
+task default: :make do
+  sh 'rspec -c -f d'
+end
+
+desc "clean"
+task :clean do
+  if File.exist?('ext/Makefile')
+    Dir.chdir 'ext' do
+      sh 'make clean'
+    end
+  end
+  sh 'rm', '-f', makefile
+end
+
+desc "build and install gem"
+task :gem do
+  Dir.glob('*.gem') do |f|
+    sh 'rm', f
+  end
+  # we need to run gem command without the mess of bundler
+  ENV['RUBYOPT'] &&= ENV['RUBYOPT'].gsub /\S*bundler\S*/, ''
+  sh 'gem', 'build', 'nyario.gemspec'
+  gem_package = Dir.glob('*.gem').first
+  sh 'gem', 'install', '-l', gem_package
+end

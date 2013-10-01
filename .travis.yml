@@ -1,0 +1,5 @@
+language: ruby
+script: STRESS=1 rake
+rvm:
+  - 2.0.0
+  - ruby-head
